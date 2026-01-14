@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bondhu Chat Pro</title>
+    <style>
+        /* Dark Mode Styling */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            background: #121212; 
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+        #video-grid { 
+            display: flex; 
+            flex-wrap: wrap;
+            justify-content: center; 
+            gap: 15px; 
+            margin-top: 20px; 
+        }
+        video { 
+            width: 320px; 
+            height: 240px;
+            border-radius: 15px; 
+            background: #1e1e1e; 
+            border: 2px solid #333;
+            object-fit: cover;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .controls { margin-bottom: 20px; }
+        input { 
+            padding: 10px; 
+            border: 1px solid #333; 
+            border-radius: 8px; 
+            background: #2d2d2d; 
+            color: white;
+            width: 70%;
+        }
+        button { 
+            padding: 10px 20px; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background: #0056b3; }
+        
+        /* Chat Box Styling */
+        #chat-box {
+            height: 150px;
+            background: #2d2d2d;
+            border-radius: 10px;
+            margin-top: 20px;
+            padding: 10px;
+            overflow-y: auto;
+            text-align: left;
+            border: 1px solid #444;
+        }
+        .message { margin-bottom: 8px; font-size: 14px; }
+        .my-msg { color: #00ff88; }
+        .friend-msg { color: #00d4ff; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>🌙 Bondhu Chat Pro</h2>
+        
+        <div class="controls">
+            <p>তোমার আইডি: <strong id="my-id" style="color: #ff9f43;">লোডিং...</strong></p>
+            <input type="text" id="friend-id" placeholder="বন্ধুর আইডি এখানে দাও">
+            <button onclick="connectToFriend()">কল ও চ্যাট</button>
+        </div>
+
+        <div id="video-grid">
+            <video id="localVideo" autoplay muted></video>
+            <video id="remoteVideo" autoplay></video>
+        </div>
+
+        <div id="chat-box">
+            <div class="message">সিস্টেম: আইডি শেয়ার করে কথা বলা শুরু করো!</div>
+        </div>
+        <div style="margin-top: 10px; display: flex; gap: 5px;">
+            <input type="text" id="msg-input" placeholder="কিছু লেখো..." style="flex: 1;">
+            <button onclick="sendMessage()" style="background: #28a745;">পাঠাও</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script>
+        const peer = new Peer();
+        let localStream;
+        let currentConn;
+
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
+            localStream = stream;
+            document.getElementById('localVideo').srcObject = stream;
+        });
+
+        peer.on('open', id => {
+            document.getElementById('my-id').innerText = id;
+        });
+
+        // কল রিসিভ করা
+        peer.on('call', call => {
+            call.answer(localStream);
+            call.on('stream', remoteStream => {
+                document.getElementById('remoteVideo').srcObject = remoteStream;
+            });
+        });
+
+        // চ্যাট কানেকশন রিসিভ করা
+        peer.on('connection', conn => {
+            currentConn = conn;
+            setupChat();
+        });
+
+        function connectToFriend() {
+            const friendId = document.getElementById('friend-id').value;
+            
+            // ভিডিও কল পাঠানো
+            const call = peer.call(friendId, localStream);
+            call.on('stream', remoteStream => {
+                document.getElementById('remoteVideo').srcObject = remoteStream;
+            });
+
+            // চ্যাট কানেকশন পাঠানো
+            currentConn = peer.connect(friendId);
+            setupChat();
+        }
+
+        function setupChat() {
+            currentConn.on('data', data => {
+                appendMessage(data, 'friend-msg');
+            });
+        }
+
+        function sendMessage() {
+            const msg = document.getElementById('msg-input').value;
+            if (msg && currentConn) {
+                currentConn.send(msg);
+                appendMessage(msg, 'my-msg');
+                document.getElementById('msg-input').value = '';
+            }
+        }
+
+        function appendMessage(msg, className) {
+            const chatBox = document.getElementById('chat-box');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message ' + className;
+            msgDiv.innerText = (className === 'my-msg' ? "আমি: " : "বন্ধু: ") + msg;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
