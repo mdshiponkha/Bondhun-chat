@@ -3,98 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bondhu Chat Pro</title>
+    <title>Bondhu Chat Pro - All-in-One</title>
     <style>
-        /* Dark Mode Styling */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            text-align: center; 
             background: #121212; 
             color: #e0e0e0;
             margin: 0;
-            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
+        /* Header */
+        .header {
+            background: #1f1f1f;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        /* Video Section */
         #video-grid { 
-            display: flex; 
-            flex-wrap: wrap;
-            justify-content: center; 
-            gap: 15px; 
-            margin-top: 20px; 
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 10px;
+            flex-grow: 1;
+            background: #000;
         }
         video { 
-            width: 320px; 
-            height: 240px;
-            border-radius: 15px; 
-            background: #1e1e1e; 
-            border: 2px solid #333;
-            object-fit: cover;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .controls { margin-bottom: 20px; }
-        input { 
-            padding: 10px; 
-            border: 1px solid #333; 
-            border-radius: 8px; 
+            width: 100%;
+            height: 100%;
+            border-radius: 10px; 
             background: #2d2d2d; 
-            color: white;
-            width: 70%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirror view */
         }
-        button { 
-            padding: 10px 20px; 
-            background: #007bff; 
-            color: white; 
+        #remoteVideo { transform: scaleX(1); }
+
+        /* Controls Area */
+        .controls {
+            background: #1f1f1f;
+            padding: 15px;
+            border-radius: 20px 20px 0 0;
+        }
+        .id-section { margin-bottom: 10px; font-size: 14px; }
+        .input-group { display: flex; gap: 5px; margin-bottom: 10px; }
+        
+        input { 
+            flex: 1;
+            padding: 12px; 
             border: none; 
-            border-radius: 8px; 
+            border-radius: 25px; 
+            background: #333; 
+            color: white;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 25px;
             cursor: pointer;
             font-weight: bold;
+            transition: 0.3s;
         }
-        button:hover { background: #0056b3; }
-        
-        /* Chat Box Styling */
+        .btn-primary { background: #007bff; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-secondary { background: #555; color: white; }
+
+        /* Chat Box */
         #chat-box {
-            height: 150px;
-            background: #2d2d2d;
-            border-radius: 10px;
-            margin-top: 20px;
+            height: 120px;
+            background: rgba(255,255,255,0.05);
+            margin: 10px 0;
             padding: 10px;
             overflow-y: auto;
-            text-align: left;
-            border: 1px solid #444;
+            border-radius: 10px;
+            font-size: 14px;
         }
-        .message { margin-bottom: 8px; font-size: 14px; }
+        .msg { margin-bottom: 5px; }
         .my-msg { color: #00ff88; }
         .friend-msg { color: #00d4ff; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>🌙 Bondhu Chat Pro</h2>
-        
-        <div class="controls">
-            <p>তোমার আইডি: <strong id="my-id" style="color: #ff9f43;">লোডিং...</strong></p>
-            <input type="text" id="friend-id" placeholder="বন্ধুর আইডি এখানে দাও">
-            <button onclick="connectToFriend()">কল ও চ্যাট</button>
+    <div class="header">
+        <h3 style="margin:0;">🌙 Bondhu Chat Pro</h3>
+    </div>
+
+    <div id="video-grid">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+    </div>
+
+    <div class="controls">
+        <div class="id-section">
+            আমার আইডি: <strong id="my-id" style="color: #ff9f43;">লোডিং...</strong>
+            <button class="btn btn-secondary" style="padding: 2px 8px; font-size: 10px;" onclick="copyId()">কপি</button>
         </div>
 
-        <div id="video-grid">
-            <video id="localVideo" autoplay muted></video>
-            <video id="remoteVideo" autoplay></video>
+        <div class="input-group">
+            <input type="text" id="friend-id" placeholder="বন্ধুর আইডি এখানে দিন">
+            <button class="btn btn-primary" onclick="connectToFriend()">কল</button>
+            <button class="btn btn-danger" onclick="endCall()">শেষ</button>
         </div>
 
-        <div id="chat-box">
-            <div class="message">সিস্টেম: আইডি শেয়ার করে কথা বলা শুরু করো!</div>
+        <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px;">
+            <button id="mic-btn" class="btn btn-secondary" onclick="toggleAudio()">🎤 Mic On</button>
+            <button id="cam-btn" class="btn btn-secondary" onclick="toggleVideo()">📷 Cam On</button>
         </div>
-        <div style="margin-top: 10px; display: flex; gap: 5px;">
-            <input type="text" id="msg-input" placeholder="কিছু লেখো..." style="flex: 1;">
-            <button onclick="sendMessage()" style="background: #28a745;">পাঠাও</button>
+
+        <div id="chat-box"></div>
+
+        <div class="input-group">
+            <input type="text" id="msg-input" placeholder="মেসেজ লিখুন...">
+            <button class="btn btn-success" onclick="sendMessage()">পাঠান</button>
         </div>
     </div>
 
@@ -102,12 +127,14 @@
     <script>
         const peer = new Peer();
         let localStream;
+        let currentCall;
         let currentConn;
 
+        // ক্যামেরা ও অডিও শুরু করা
         navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
             localStream = stream;
             document.getElementById('localVideo').srcObject = stream;
-        });
+        }).catch(err => alert("ক্যামেরা পাওয়া যায়নি!"));
 
         peer.on('open', id => {
             document.getElementById('my-id').innerText = id;
@@ -115,54 +142,78 @@
 
         // কল রিসিভ করা
         peer.on('call', call => {
+            currentCall = call;
             call.answer(localStream);
             call.on('stream', remoteStream => {
                 document.getElementById('remoteVideo').srcObject = remoteStream;
             });
         });
 
-        // চ্যাট কানেকশন রিসিভ করা
+        // চ্যাট রিসিভ করা
         peer.on('connection', conn => {
             currentConn = conn;
             setupChat();
         });
 
         function connectToFriend() {
-            const friendId = document.getElementById('friend-id').value;
-            
-            // ভিডিও কল পাঠানো
-            const call = peer.call(friendId, localStream);
-            call.on('stream', remoteStream => {
+            const fId = document.getElementById('friend-id').value;
+            if(!fId) return alert("আইডি দিন!");
+
+            currentCall = peer.call(fId, localStream);
+            currentCall.on('stream', remoteStream => {
                 document.getElementById('remoteVideo').srcObject = remoteStream;
             });
 
-            // চ্যাট কানেকশন পাঠানো
-            currentConn = peer.connect(friendId);
+            currentConn = peer.connect(fId);
             setupChat();
         }
 
         function setupChat() {
-            currentConn.on('data', data => {
-                appendMessage(data, 'friend-msg');
-            });
+            currentConn.on('data', data => appendMsg(data, 'friend-msg'));
         }
 
         function sendMessage() {
             const msg = document.getElementById('msg-input').value;
             if (msg && currentConn) {
                 currentConn.send(msg);
-                appendMessage(msg, 'my-msg');
+                appendMsg(msg, 'my-msg');
                 document.getElementById('msg-input').value = '';
             }
         }
 
-        function appendMessage(msg, className) {
-            const chatBox = document.getElementById('chat-box');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message ' + className;
-            msgDiv.innerText = (className === 'my-msg' ? "আমি: " : "বন্ধু: ") + msg;
-            chatBox.appendChild(msgDiv);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        function appendMsg(msg, type) {
+            const box = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            div.className = 'msg ' + type;
+            div.innerText = (type === 'my-msg' ? "আমি: " : "বন্ধু: ") + msg;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function copyId() {
+            const id = document.getElementById('my-id').innerText;
+            navigator.clipboard.writeText(id);
+            alert("আইডি কপি হয়েছে!");
+        }
+
+        function endCall() {
+            if(currentCall) currentCall.close();
+            if(currentConn) currentConn.close();
+            document.getElementById('remoteVideo').srcObject = null;
+            alert("কল শেষ!");
+        }
+
+        // Mic/Cam Toggle Functions
+        function toggleAudio() {
+            const enabled = localStream.getAudioTracks()[0].enabled;
+            localStream.getAudioTracks()[0].enabled = !enabled;
+            document.getElementById('mic-btn').innerText = !enabled ? "🎤 Mic On" : "🔇 Mic Off";
+        }
+
+        function toggleVideo() {
+            const enabled = localStream.getVideoTracks()[0].enabled;
+            localStream.getVideoTracks()[0].enabled = !enabled;
+            document.getElementById('cam-btn').innerText = !enabled ? "📷 Cam On" : "🚫 Cam Off";
         }
     </script>
 </body>
